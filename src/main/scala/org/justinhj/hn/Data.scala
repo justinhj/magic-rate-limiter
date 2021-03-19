@@ -51,11 +51,15 @@ object Data {
 
   object HNItemIDList {
     implicit val decoder: JsonDecoder[HNItemIDList] =
-          JsonDecoder[List[HNItemID]].map { itemIds =>
-            HNItemIDList(itemIds)
-    }
+      JsonDecoder[List[HNItemID]].map(HNItemIDList(_))
   }
 
   case class HNItemIDList(itemIDs: List[HNItemID]) extends HNData
 
+  object HNSingleItemID {
+    implicit val decoder: JsonDecoder[HNSingleItemID] =
+      JsonDecoder[HNItemID].map(HNSingleItemID(_))
+  }
+
+  case class HNSingleItemID(itemId: HNItemID) extends HNData
 }

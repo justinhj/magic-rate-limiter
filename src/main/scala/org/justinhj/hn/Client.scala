@@ -17,17 +17,24 @@ object Client {
   // These headers are sent with every request
   val commonHeaders = Map("Content-Type" -> "application/json")
 
+  // See here for Hacker News API
+  // https://github.com/HackerNews/API
+
+  // Base URL for all requests
   private val baseHNURL = "https://hacker-news.firebaseio.com/v0/"
 
-  // What follows is a URI builder and the actual request code for each of the API calls
+  // URI builders for each endpoint
 
-  private def getUserURL(userId: Data.HNUserID) = uri"${baseHNURL}user/$userId.json"
+  private def getUserURI(userId: Data.HNUserID) = uri"${baseHNURL}user/$userId.json"
+  private def getItemURI(itemId: Data.HNItemID) = uri"${baseHNURL}item/$itemId.json"
 
-  private def getItemURL(itemId: Data.HNItemID) = uri"${baseHNURL}item/$itemId.json"
+  private val getTopStoriesURI = uri"${baseHNURL}topstories.json"
+  private val getNewStoriesURI = uri"${baseHNURL}newstories.json"
+  private val getBestStoriesURI = uri"${baseHNURL}beststories.json"
 
-  private val getTopItemsURL = uri"${baseHNURL}topstories.json"
+  private val getMaxItemURI = uri"${baseHNURL}maxitem.json"
 
-  private val getMaxItemURL = uri"${baseHNURL}maxitem.json"
+  // Methods to build and execute the requests
 
   def createRequest[T <: Data.HNData](uri: Uri, lastModified: Option[String])
     (implicit D : JsonDecoder[T])
@@ -85,7 +92,7 @@ object Client {
     Throwable,
     Data.HNItem
   ] = {
-    val uri = getItemURL(itemId)
+    val uri = getItemURI(itemId)
     getObject[Data.HNItem](uri)
   }
 
@@ -94,7 +101,7 @@ object Client {
     Throwable,
     Data.HNUser
   ] = {
-    val uri = getUserURL(userId)
+    val uri = getUserURI(userId)
     getObject[Data.HNUser](uri)
   }
 
@@ -102,6 +109,25 @@ object Client {
     SttpClient with Console with Clock,
     Throwable,
     Data.HNItemIDList
-  ] = getObject[Data.HNItemIDList](getTopItemsURL)
+  ] = getObject[Data.HNItemIDList](getTopStoriesURI)
+
+  def getBestStories(): ZIO[
+    SttpClient with Console with Clock,
+    Throwable,
+    Data.HNItemIDList
+  ] = getObject[Data.HNItemIDList](getBestStoriesURI)
+
+  def getNewStories(): ZIO[
+    SttpClient with Console with Clock,
+    Throwable,
+    Data.HNItemIDList
+  ] = getObject[Data.HNItemIDList](getNewStoriesURI)
+
+  def getMaxItem(): ZIO[
+    SttpClient with Console with Clock,
+    Throwable,
+    Data.HNSingleItemID
+  ] = getObject[Data.HNSingleItemID](getMaxItemURI)
+
 
 }
