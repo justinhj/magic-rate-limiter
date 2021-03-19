@@ -2,7 +2,7 @@ package org.justinhj.hn
 
 object Data {
 
-  import zio.json._ 
+  import zio.json._
 
   type HNUserID = String
   type HNItemID = Int
@@ -14,9 +14,9 @@ object Data {
 
   object HNUser {
     // Json decoder
-    implicit val decoder: JsonDecoder[HNUser] = DeriveJsonDecoder.gen[HNUser] 
+    implicit val decoder: JsonDecoder[HNUser] = DeriveJsonDecoder.gen[HNUser]
   }
-  
+
   case class HNUser(
     id: HNUserID, // The user's unique username. Case-sensitive. Required.
     //delay : Int, // Delay in minutes between a comment's creation and its visibility to other users.
@@ -28,7 +28,7 @@ object Data {
 
   object HNItem {
     // Json decoder
-    implicit val decoder: JsonDecoder[HNItem] = DeriveJsonDecoder.gen[HNItem] 
+    implicit val decoder: JsonDecoder[HNItem] = DeriveJsonDecoder.gen[HNItem]
   }
 
   case class HNItem(
@@ -48,5 +48,14 @@ object Data {
     parts: List[HNItemID] = List(), // A list of related pollopts, in display order.
     descendants: Int = 0 // In the case of stories or polls, the total comment count.
   ) extends HNData
+
+  object HNItemIDList {
+    implicit val decoder: JsonDecoder[HNItemIDList] =
+          JsonDecoder[List[HNItemID]].map { itemIds =>
+            HNItemIDList(itemIds)
+    }
+  }
+
+  case class HNItemIDList(itemIDs: List[HNItemID]) extends HNData
 
 }

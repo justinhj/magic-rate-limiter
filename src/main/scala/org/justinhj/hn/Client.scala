@@ -98,4 +98,10 @@ object Client {
     getObject[Data.HNUser](uri)
   }
 
+  def getTopStories(): ZIO[
+    SttpClient with Console with Clock,
+    Throwable,
+    Data.HNItemIDList
+  ] = getObject[Data.HNItemIDList](getTopItemsURL)
+
 }

@@ -8,14 +8,18 @@ import hn._
 
 object Magicratelimiter extends App {
 
+
   val exampleApp = {
     for (
       _ <- putStrLn("Fetching item");
-      item <- Client.getItem(26145501);
+      item <- Client.getItem(26498527);
       _ <- putStrLn(s"Item: $item");
       _ <- putStrLn("Fetching user");
       user <- Client.getUser("justinhj");
-      _ <- putStrLn(s"User: $user")
+      _ <- putStrLn(s"User: $user");
+      _ <- putStrLn("Fetching top items");
+      topItems <- Client.getTopStories();
+      _ <- putStrLn(s"Top stories: $topItems")
      ) yield ()
   }
 
