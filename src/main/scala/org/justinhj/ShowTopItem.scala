@@ -6,7 +6,7 @@ import zio.clock._
 import sttp.client3.httpclient.zio._
 import hn._
 
-object GetTopItem extends App {
+object ShowTopItem extends App {
 
   val app = {
     for (
