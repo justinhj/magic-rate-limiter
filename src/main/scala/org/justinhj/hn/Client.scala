@@ -12,6 +12,18 @@ import sttp.model.Uri
 //import java.time.Instant
 import zio.json.JsonDecoder
 
+package object client {
+
+  type HNClient = Has[HNClient.Service]
+
+  object HNClient {
+
+    trait Service {
+      def getItem(itemId: Data.HNItemID): ZIO[Any,Throwable,Data.HNItem]
+    }
+  }
+}
+
 object Client {
 
   // These headers are sent with every request
