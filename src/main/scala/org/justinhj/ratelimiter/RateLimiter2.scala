@@ -31,7 +31,6 @@ package object ratelimiter2 {
                   timeRef =>
                     new Service {
                       def delay: ZIO[Any,Nothing,Unit] = (for (
-                        _ <- console.putStrLn("Morally shit");
                         now <- clock.currentTime(TimeUnit.NANOSECONDS);
                         prevTime <- timeRef.get;
                         _ <- timeRef.set(now);
@@ -41,6 +40,7 @@ package object ratelimiter2 {
                               console.putStrLn(s"Waiting ${wait/1000000}ms") *>
                               clock.sleep(Duration.fromNanos(wait))
                             else
+                              console.putStrLn("No wait") *>
                               ZIO.succeed(())
 
                       ) yield ())
