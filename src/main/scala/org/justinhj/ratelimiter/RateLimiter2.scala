@@ -7,6 +7,7 @@ import zio.Has
 import zio.ZLayer
 import zio.Ref
 import java.util.concurrent.TimeUnit
+import zio.console._
 
 package object ratelimiter2 {
 
@@ -19,41 +20,36 @@ package object ratelimiter2 {
     }
 
     // TODO can you use duration arithmetic?
-    val live: ZLayer[Clock, Nothing, Has[Service]] = {
-      val minInterval: Long = 3.seconds.toNanos.toLong
-
+    val live: ZLayer[Clock with Console, Nothing, Has[Service]] = {
+      val minInterval: Long = 1.seconds.toNanos.toLong
       ZLayer.fromEffect(
-        ZIO.access[Clock](_.get).flatMap {
-          clock =>
-            currentTime(TimeUnit.NANOSECONDS).flatMap(Ref.make).map {
-              timeRef =>
-                new Service {
-                  def delay: ZIO[Any,Nothing,Unit] = (for (
-                    now <- currentTime(TimeUnit.NANOSECONDS);
-                    prevTime <- timeRef.get;
-                    elapsed = now - prevTime;
-                    wait = minInterval - elapsed;
-                    _ <- if(wait > 0)
-                          ZIO.sleep(Duration.fromNanos(wait))
-                        else
-                          ZIO.succeed(())
+        ZIO.access[Console](_.get).flatMap {
+          console =>
+            ZIO.access[Clock](_.get).flatMap {
+              clock =>
+                currentTime(TimeUnit.NANOSECONDS).flatMap(Ref.make).map {
+                  timeRef =>
+                    new Service {
+                      def delay: ZIO[Any,Nothing,Unit] = (for (
+                        _ <- console.putStrLn("Morally shit");
+                        now <- clock.currentTime(TimeUnit.NANOSECONDS);
+                        prevTime <- timeRef.get;
+                        _ <- timeRef.set(now);
+                        elapsed = now - prevTime;
+                        wait = minInterval - elapsed;
+                        _ <- if(wait > 0)
+                              console.putStrLn(s"Waiting ${wait/1000000}ms") *>
+                              clock.sleep(Duration.fromNanos(wait))
+                            else
+                              ZIO.succeed(())
 
-                  ) yield ()).provideSomeLayer(ZLayer.fromService(clock))
+                      ) yield ())
+                    }
                 }
-            }
-          })
-        }
-
-      // need to wait 300
-      // last time was 0
-      // time now is 100
-      // elapsed = now - then = 100 - 0 = 100 (should always be positive)
-      // wait = 300 - elapsed = 200
-      // time now is 310
-      // elapsed is 310
-      // wait = 300 - 310 = -'ve so no wait
+              }
+        })
+      }
 
     def delay  = ZIO.accessM[RateLimiter](_.get.delay)
-
   }
 }

@@ -5,11 +5,11 @@ import zio.console._
 import zio.clock._
 import sttp.client3.httpclient.zio._
 import hn._
-import org.justinhj.ratelimiter.RateLimiter
+import org.justinhj.ratelimiter2.RateLimiter
 
 object SearchTopItems2 extends App {
 
-  // This step can be developer from step 1 by implementing the rate limit of 1 second
+  // This step can be developed from step 1 by implementing the rate limit of 1 second
 
   // Get an item and search various fields for the search string
   // Called for effects only
