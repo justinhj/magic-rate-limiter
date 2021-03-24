@@ -6,17 +6,16 @@ import zio.clock._
 import sttp.client3.httpclient.zio._
 import hn._
 import org.justinhj.ratelimiter2.RateLimiter
+import zio.duration._
+import zio.magic._
 
 object SearchTopItems2 extends App {
-
-  // This step can be developed from step 1 by implementing the rate limit of 1 second
 
   // Get an item and search various fields for the search string
   // Called for effects only
   def checkItemForString(search: String, id: Data.HNItemID) = {
     for (
       item <- Client.getItem(id);
-      //_ <- putStrLn(item.id + " " + item.title);
       _ <- if(item.by.contains(search)) putStrLn(s"Found in author: ${item.by}")
            else if(item.text.contains(search)) putStrLn(s"Found in text: ${item.text}")
            else if(item.title.contains(search)) putStrLn(s"Found in title: ${item.title}")
@@ -25,7 +24,7 @@ object SearchTopItems2 extends App {
     ) yield ()
   }
 
-  val frontPageSize = 10 // The real page has 30
+  val frontPageSize = 30
 
   def app(search: String) = {
     for (
@@ -45,13 +44,20 @@ object SearchTopItems2 extends App {
      ) yield ()
   }
 
-  val zLayers = Clock.live ++ Console.live ++ HttpClientZioBackend.layer() ++ RateLimiter.live
+  val config = ZLayer.succeed(RateLimiter.RateLimiterConfig(50.milliseconds))
 
-  def run(args: List[String]) =
-    (for (
-      search <- ZIO.fromOption(args.headOption);
-      _ <- putStrLn(s"""Searching top items for string "$search" (case sensitive)""");
-      _ <- app(search)
-    ) yield ()).provideLayer(zLayers).
-    fold(_ =>ExitCode(1), _ => ExitCode(0))
+  def program(searchTerm: String) = app(searchTerm).provideMagicLayer(
+      Clock.live,
+      Console.live,
+      HttpClientZioBackend.layer(),
+      config,
+      RateLimiter.live)
+
+//  val test1 = (config >>> RateLimiter.live)
+
+  //val oldFashionedZLayers = Clock.live ++ Console.live ++ HttpClientZioBackend.layer() ++ config ++ RateLimiter.live
+
+  //val oldFashionedRun = app("hello").provideLayer(oldFashionedZLayers)
+
+  def run(args: List[String]) = program(args.head).fold(_ => ExitCode.failure, _ => ExitCode.success)
 }

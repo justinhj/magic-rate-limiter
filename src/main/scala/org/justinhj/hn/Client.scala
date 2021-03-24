@@ -7,9 +7,7 @@ import zio.clock.Clock
 import sttp.client3.httpclient.zio._
 import sttp.model.StatusCode
 import sttp.model.HeaderNames
-//import java.time.Duration
 import sttp.model.Uri
-//import java.time.Instant
 import zio.json.JsonDecoder
 
 package object client {
@@ -85,9 +83,10 @@ object Client {
         } else if (response.code == StatusCode.Ok) {
           response.body match {
             case Right(data) =>
-              putStrLn(
-                s"got updated $uri. last modified ${response.header(HeaderNames.LastModified)} at ${System.currentTimeMillis()}"
-              ) *>
+              // putStrLn(
+              //   s"got updated $uri. last modified ${response.header(HeaderNames.LastModified)} at ${System.currentTimeMillis()}"
+              // )
+              // *>
               ZIO.succeed(data)
             case Left(err) =>
               putStrLn(s"Request failed: $err") *>

@@ -96,11 +96,9 @@ libraryDependencies ++= Seq(
   "org.typelevel" %% "simulacrum" % "1.0.0",
   // sttp and json
   "com.softwaremill.sttp.client3" %% "core" % SttpVersion,
-  //"com.softwaremill.sttp.client" %% "async-http-client-backend-zio" % SttpVersion,
   "com.softwaremill.sttp.client3" %% "httpclient-backend-zio" % SttpVersion,
-  //"com.softwaremill.sttp.client" %% "json4s" % SttpVersion,
-  //"org.json4s" %% "json4s-native" % "3.6.9",
   "dev.zio" %% "zio-json" % "0.1.2",
+  "io.github.kitlangton" %% "zio-magic" % "0.1.12",
   // Embed Li Haoyi's Ammonite repl in your test project because it's cool
   "com.lihaoyi" %% "ammonite" % AmmoniteVersion % "test" cross CrossVersion.full
 )
