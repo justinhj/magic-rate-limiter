@@ -14,12 +14,13 @@ object SearchTopItems2 extends App {
   // Get an item and search various fields for the search string
   // Called for effects only
   def checkItemForString(search: String, id: Data.HNItemID) = {
+    val searchLower = search.toLowerCase
     for (
       item <- Client.getItem(id);
-      _ <- if(item.by.contains(search)) putStrLn(s"Found in author: ${item.by}")
-           else if(item.text.contains(search)) putStrLn(s"Found in text: ${item.text}")
-           else if(item.title.contains(search)) putStrLn(s"Found in title: ${item.title}")
-           else if(item.url.contains(search)) putStrLn(s"Found in url: ${item.url}")
+      _ <- if(item.by.toLowerCase.contains(searchLower)) putStrLn(s"Found in author: ${item.by}")
+           else if(item.text.toLowerCase.contains(searchLower)) putStrLn(s"Found in text: ${item.text}")
+           else if(item.title.toLowerCase.contains(searchLower)) putStrLn(s"Found in title: ${item.title}")
+           else if(item.url.toLowerCase.contains(searchLower)) putStrLn(s"Found in url: ${item.url}")
            else ZIO.succeed(())
     ) yield ()
   }

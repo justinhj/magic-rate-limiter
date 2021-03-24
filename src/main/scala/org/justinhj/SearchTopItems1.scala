@@ -14,7 +14,6 @@ object SearchTopItems1 extends App {
     val searchLower = search.toLowerCase
     for (
       item <- Client.getItem(id);
-      //_ <- putStrLn(item.id + " " + item.title);
       _ <- if(item.by.toLowerCase.contains(searchLower)) putStrLn(s"Found in author: ${item.by}")
            else if(item.text.toLowerCase.contains(searchLower)) putStrLn(s"Found in text: ${item.text}")
            else if(item.title.toLowerCase.contains(searchLower)) putStrLn(s"Found in title: ${item.title}")
