@@ -5,7 +5,7 @@ import zio.console._
 import zio.clock._
 import sttp.client3.httpclient.zio._
 import hn._
-import org.justinhj.ratelimiter2.RateLimiter
+import org.justinhj.ratelimiter2._
 import zio.duration._
 import zio.magic._
 
@@ -30,7 +30,7 @@ object SearchTopItems2 extends App {
     for (
       _ <- putStrLn("Fetching front page stories");
       stories <- Client.getTopStories();
-      _ <- putStrLn(s"Received ${stories.itemIDs.size} stories");
+      _ <- putStrLn(s"Received ${stories.itemIDs.size} stories. Searching top $frontPageSize");
       _ <- if(stories.itemIDs.size == 0)
             ZIO.fail("No stories :(")
            else
@@ -44,7 +44,7 @@ object SearchTopItems2 extends App {
      ) yield ()
   }
 
-  val config = ZLayer.succeed(RateLimiter.RateLimiterConfig(50.milliseconds))
+  val config = ZLayer.succeed(RateLimiterConfig(50.milliseconds))
 
   def program(searchTerm: String) = app(searchTerm).provideMagicLayer(
       Clock.live,
@@ -52,12 +52,6 @@ object SearchTopItems2 extends App {
       HttpClientZioBackend.layer(),
       config,
       RateLimiter.live)
-
-//  val test1 = (config >>> RateLimiter.live)
-
-  //val oldFashionedZLayers = Clock.live ++ Console.live ++ HttpClientZioBackend.layer() ++ config ++ RateLimiter.live
-
-  //val oldFashionedRun = app("hello").provideLayer(oldFashionedZLayers)
 
   def run(args: List[String]) = program(args.head).fold(_ => ExitCode.failure, _ => ExitCode.success)
 }
