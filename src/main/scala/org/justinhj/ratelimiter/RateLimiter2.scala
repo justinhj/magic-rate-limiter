@@ -22,7 +22,7 @@ package object ratelimiter2 {
       def delay: ZIO[Any,Nothing,Unit]
     }
 
-    val live:  ZLayer[Clock with Console with Has[RateLimiterConfig], Nothing, Has[Service]] =
+    val live:  ZLayer[Clock with Console with Has[RateLimiterConfig], Nothing, RateLimiter] =
       ZLayer.fromServicesM[Clock.Service,Console.Service,RateLimiterConfig,
         Clock with Console with Has[RateLimiterConfig],
         Nothing,
