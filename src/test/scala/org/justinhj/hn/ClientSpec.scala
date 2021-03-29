@@ -17,7 +17,7 @@ import zio.test._
 
 object ClientSpec extends DefaultRunnableSpec {
 
-  val configLayer = ZLayer.succeed(RateLimiterConfig(50.milliseconds))
+  val configLayer = ZLayer.succeed(RateLimiter.Config(50.milliseconds))
 
   val testLayer = ZLayer.fromMagic[SttpClient with SttpClientStubbing with Console with Clock](
       Clock.live,

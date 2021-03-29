@@ -32,6 +32,7 @@ package object ratelimiter2 {
               new Service {
                 def delay: ZIO[Any,Nothing,Unit] = (for (
                   now <- clock.currentTime(TimeUnit.NANOSECONDS);
+                  _ <- ZIO.succeed(println(s"lol now $now"));
                   prevTime <- timeRef.get;
                   _ <- timeRef.set(now);
                   elapsed = now - prevTime;

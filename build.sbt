@@ -20,6 +20,7 @@ scalacOptions ++= Seq(
   "-language:existentials",            // Existential types (besides wildcard types) can be written and inferred
   "-language:experimental.macros",     // Allow macro definition (besides implementation and application)
   "-language:higherKinds",             // Allow higher-kinded types
+  "-language:postfixOps",              // Allow post fix operations
   "-language:implicitConversions",     // Allow definition of implicit functions called views
   "-unchecked",                        // Enable additional warnings where generated code depends on assumptions.
   "-Xcheckinit",                       // Wrap field accessors to throw an exception on uninitialized access.
