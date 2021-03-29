@@ -7,27 +7,25 @@ import zio.Has
 import zio.ZLayer
 import zio.Ref
 import java.util.concurrent.TimeUnit
-import zio.console._
 
 package object ratelimiter2 {
 
-  case class RateLimiterConfig(minInterval: Duration)
-
   type RateLimiter = Has[RateLimiter.Service]
+  type RateLimiterConfig = Has[RateLimiter.Config]
 
   object RateLimiter {
-
-    // WIP
     trait Service {
       def delay: ZIO[Any,Nothing,Unit]
     }
 
-    val live:  ZLayer[Clock with Console with Has[RateLimiterConfig], Nothing, RateLimiter] =
-      ZLayer.fromServicesM[Clock.Service,Console.Service,RateLimiterConfig,
-        Clock with Console with Has[RateLimiterConfig],
-        Nothing,
+    case class Config(minInterval: Duration)
+
+    val live:  ZLayer[Clock with RateLimiterConfig, Throwable, RateLimiter] =
+      ZLayer.fromServicesM[Clock.Service,Config,
+        Clock with RateLimiterConfig,
+        Throwable,
         Service] {
-        (clock: Clock.Service,console: Console.Service,config: RateLimiterConfig) =>
+        (clock: Clock.Service,config: Config) =>
           val minInterval = config.minInterval.toNanos().toLong
           currentTime(TimeUnit.NANOSECONDS).flatMap(Ref.make).map {
             timeRef =>
@@ -39,10 +37,8 @@ package object ratelimiter2 {
                   elapsed = now - prevTime;
                   wait = minInterval - elapsed;
                   _ <- if(wait > 0)
-                        //console.putStrLn(s"Waiting ${wait/1000000}ms") *>
                         clock.sleep(Duration.fromNanos(wait))
                       else
-                        //console.putStrLn("No wait") *>
                         ZIO.succeed(())
                 ) yield ())
               }

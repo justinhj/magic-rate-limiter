@@ -27,32 +27,41 @@ object SearchTopItems2 extends App {
 
   val frontPageSize = 30
 
-  def app(search: String) = {
+  def app(search: String): ZIO[RateLimiter with SttpClient with Console with Clock,Throwable,Unit] = {
     for (
       _ <- putStrLn("Fetching front page stories");
       stories <- Client.getTopStories();
       _ <- putStrLn(s"Received ${stories.itemIDs.size} stories. Searching top $frontPageSize");
-      _ <- if(stories.itemIDs.size == 0)
-            ZIO.fail("No stories :(")
-           else
-            for (
+      _ <- ZIO.when(stories.itemIDs.size > 0)(for (
               topStories <- ZIO.succeed(stories.itemIDs.take(frontPageSize));
               _ <- ZIO.foreach(topStories){
                 itemID =>
                   RateLimiter.delay *> checkItemForString(search,itemID)
               }
-            ) yield ()
+            ) yield ())
      ) yield ()
   }
 
-  val config = ZLayer.succeed(RateLimiterConfig(50.milliseconds))
+  // Program with no magic
+  val configLayer =
+    ZLayer.succeed(RateLimiter.Config(50.milliseconds))
+  val rateLimiterLayer =
+    (Clock.live ++ configLayer >>> RateLimiter.live) ++ HttpClientZioBackend.layer() ++ Console.live
 
-  def program(searchTerm: String) = app(searchTerm).provideMagicLayer(
+  def program(searchTerm: String): ZIO[ZEnv,Throwable,Unit] =
+    app(searchTerm).provideCustomLayer(rateLimiterLayer)
+
+  // Same program with magic
+  def programWithMagic(searchTerm: String): ZIO[ZEnv,Throwable,Unit] =
+    app(searchTerm).provideMagicLayer(
       Clock.live,
       Console.live,
       HttpClientZioBackend.layer(),
-      config,
+      configLayer,
       RateLimiter.live)
 
-  def run(args: List[String]) = program(args.head).fold(_ => ExitCode.failure, _ => ExitCode.success)
+  def run(args: List[String]) = {
+    ZIO.when(args.nonEmpty)(program(args.head)).
+        fold(_ => ExitCode.failure, _ => ExitCode.success)
+  }
 }
