@@ -18,31 +18,28 @@ import zio.console._
 
 object RateLimiterSpec extends DefaultRunnableSpec {
 
+  // Set up a rate limit config of one second per interval...
   private val configLayer = ZLayer.succeed(RateLimiter.Config(1000 millis))
+
   private val testLayer = (TestClock.any ++ configLayer) >>> RateLimiter.live
 
   def spec: ZSpec[Environment, Failure] =
     suite("RateLimiterSpec")(
+      /**
+        * To prove that the first request is not limited we need a fiber that
+        * will write to the queue in one second, and another that will be rate
+        * limited but write immediately. We should see that the first effect
+        * is written first...
+        */
       testM("Rate limiter does not limit first request") {
         (for (
           outputs <- Queue.bounded[Int](10);
-          _ <- (ZIO.sleep(120 millis) *> outputs.offer(2)).fork;
-          _ <- adjust(100 millis);
-          _ <- RateLimiter.delay *> outputs.offer(1);
-          _ <- outputs.offer(1);
-          //_ <- outputs.offer(2);
-          _ <- adjust(3000 millis);
-          t1 <- currentTime(TimeUnit.MILLISECONDS);
-          _ <- putStrLn(s"time is $t1");
+          _ <- (ZIO.sleep(500 millis) *> outputs.offer(2)).fork; // Should happen halfway through first limit period
+          _ <- (RateLimiter.delay *> outputs.offer(1)).fork; // Should happen first
+          _ <- adjust(1000 millis);
           contents <- outputs.takeAll
         ) yield assert(contents)(equalTo(List(1,2)))).provideSomeMagicLayer(testLayer)
       }
     )
 
 }
-
-//
-//for {
-//_    <- setTime(1.millis)
-//time <- currentTime(TimeUnit.NANOSECONDS)
-//} yield assert(time)(equalTo(2.millis.toNanos))

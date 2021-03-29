@@ -55,7 +55,12 @@ Same principle applies for more than two fibers.
 
 Note that the Ref is shared by the threads and must handle race conditions.
 
-## Libraries used
+## Libraries and references
+
+### Blogs and talks
+
+https://timpigden.github.io/_pages/zio-streams/SpeedingUpTime.html
+https://blog.softwaremill.com/managing-dependencies-using-zio-8acc1539e276
 
 ### ZIO
 
