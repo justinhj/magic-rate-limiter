@@ -43,15 +43,19 @@ t=0.1 request comes in... sets "last time" to now + 0.9. limiter sleeps for 0.9
 t=1.0 limiter wakes, . Allows fiber to continue.
 t=3.0 request comes in... limiter doesn't need to sleep. Sets "last time" to now
 
-Two fibers
+Two requests...
 
-t=0.0 rate limiter created with rate of 1 per second (last time in the ref is set to now - 1 second)
-t=0.1 request A comes in... sets "last time" to now + 0.9. limiter sleeps for 0.9
-t=0.1 request B comes in. last time is 1.0 we can go at 2.0. sets last time to 2.0 and sleeps for 1.9
-t=1.0 A limiter wakes and request A runs
-t=2.0 B limiter wakes and request B runs
+req 0 at 0.1
+req 1 at 0.2
 
-Same principle applies for more than two fibers.
+A should run right away and set the next time to run at 1.1
+B should block until 1.1
+
+advance time to 1.0 and write 2
+advance time to 1.2 and B should be done also (write 3)
+next time to run should be at 2.1
+
+output should be 0,2,1,3
 
 Note that the Ref is shared by the threads and must handle race conditions.
 

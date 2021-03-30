@@ -26,23 +26,24 @@ package object ratelimiter2 {
         Throwable,
         Service] {
         (clock: Clock.Service,config: Config) =>
-          val minInterval = config.minInterval.toNanos().toLong
-          currentTime(TimeUnit.NANOSECONDS).flatMap(Ref.make).map {
-            timeRef =>
-              new Service {
-                def delay: ZIO[Any,Nothing,Unit] = (for (
-                  now <- clock.currentTime(TimeUnit.NANOSECONDS);
-                  prevTime <- timeRef.get;
-                  _ <- timeRef.set(now);
-                  elapsed = now - prevTime;
-                  wait = minInterval - elapsed;
-                  _ <- if(wait > 0)
-                        clock.sleep(Duration.fromNanos(wait))
-                      else
-                        ZIO.succeed(())
-                ) yield ())
-              }
-          }
+          val minInterval = config.minInterval.toNanos()
+          currentTime(TimeUnit.NANOSECONDS).
+            flatMap(t => Ref.make(t - minInterval)).map {
+              timeRef =>
+                new Service {
+                  def delay: ZIO[Any,Nothing,Unit] = (for (
+                    now <- clock.currentTime(TimeUnit.NANOSECONDS);
+                    nextTime <- timeRef.get; // the ref holds the next time you can go ahead
+                    wait = if(nextTime - now > 0) nextTime - now else 0;
+                    _ <- timeRef.set(now + minInterval + wait);
+                    _ <- ZIO.succeed(println(s"nextTime ${nextTime / 1000000}\nwait ${wait / 1000000}\nnow ${now / 1000000}\n"));
+                    _ <- if(wait > 0)
+                          clock.sleep(Duration.fromNanos(wait))
+                        else
+                          ZIO.succeed(())
+                  ) yield ())
+                }
+            }
       }
 
     def delay  = ZIO.accessM[RateLimiter](_.get.delay)

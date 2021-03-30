@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit
 //import zio.Schedule
 import zio.Queue
 import zio.console._
+import os.size
 
 // Tests for the Ref based rate limiter
 
@@ -39,6 +40,37 @@ object RateLimiterSpec extends DefaultRunnableSpec {
           _ <- adjust(1000 millis);
           contents <- outputs.takeAll
         ) yield assert(contents)(equalTo(List(1,2)))).provideSomeMagicLayer(testLayer)
+      },
+      testM("Rate limiter handles two requests") {
+        (for (
+          outputs <- Queue.bounded[Int](10);
+          _ <- (ZIO.sleep(1000 millis) *> outputs.offer(2)).fork;
+          _ <- (ZIO.sleep(1200 millis) *> outputs.offer(3)).fork;
+          _ <- adjust(100 millis);
+          _ <- (RateLimiter.delay *> outputs.offer(0)).fork;
+          _ <- adjust(100 millis);
+          _ <- (RateLimiter.delay *> outputs.offer(1)).fork;
+          _ <- adjust(2000 millis);
+          contents <- outputs.takeAll
+        ) yield assert(contents)(equalTo(List(0,2,1,3)))).provideSomeMagicLayer(testLayer)
+      },
+      testM("Rate limiter can do 10 requests in 10 seconds") {
+        (for (
+          outputs <- Queue.bounded[Int](20);
+          _ <- (ZIO.sleep(10000 millis) *> outputs.offer(11)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(1)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(2)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(3)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(4)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(5)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(6)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(7)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(8)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(9)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(10)).fork;
+          _ <- adjust(10000 millis);
+          contents <- outputs.takeAll
+        ) yield assert(contents)(hasSize(equalTo(11)))).provideSomeMagicLayer(testLayer)
       }
     )
 
