@@ -2,18 +2,13 @@ package org.justinhj.ratelimiter2
 
 import zio.ZIO
 import zio.ZLayer
-import zio.clock._
 import zio.test.environment.TestClock._
 import zio.duration._
 import zio.magic._
 import zio.test.Assertion._
 import zio.test._
 import zio.test.environment._
-import java.util.concurrent.TimeUnit
-//import zio.Schedule
 import zio.Queue
-import zio.console._
-import os.size
 
 // Tests for the Ref based rate limiter
 
@@ -27,16 +22,17 @@ object RateLimiterSpec extends DefaultRunnableSpec {
   def spec: ZSpec[Environment, Failure] =
     suite("RateLimiterSpec")(
       /**
-        * To prove that the first request is not limited we need a fiber that
-        * will write to the queue in one second, and another that will be rate
-        * limited but write immediately. We should see that the first effect
-        * is written first...
+        * The strategy here is to sleep a fiber to points that I want to check
+        * when certain events are happening, and write an identifying integer
+        * to a ZQueue. Then events do the same; when they trigger they write to
+        * the queue as well, and then I can check that the order of events is as
+        * expected at the end.
         */
       testM("Rate limiter does not limit first request") {
         (for (
           outputs <- Queue.bounded[Int](10);
-          _ <- (ZIO.sleep(500 millis) *> outputs.offer(2)).fork; // Should happen halfway through first limit period
-          _ <- (RateLimiter.delay *> outputs.offer(1)).fork; // Should happen first
+          _ <- (ZIO.sleep(500 millis) *> outputs.offer(2)).fork;
+          _ <- (RateLimiter.delay *> outputs.offer(1)).fork;
           _ <- adjust(1000 millis);
           contents <- outputs.takeAll
         ) yield assert(contents)(equalTo(List(1,2)))).provideSomeMagicLayer(testLayer)
@@ -54,20 +50,11 @@ object RateLimiterSpec extends DefaultRunnableSpec {
           contents <- outputs.takeAll
         ) yield assert(contents)(equalTo(List(0,2,1,3)))).provideSomeMagicLayer(testLayer)
       },
-      testM("Rate limiter can do 10 requests in 10 seconds") {
+      testM("Rate limiter takes 10 seconds to do 10 requests") {
         (for (
           outputs <- Queue.bounded[Int](20);
           _ <- (ZIO.sleep(10000 millis) *> outputs.offer(11)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(1)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(2)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(3)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(4)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(5)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(6)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(7)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(8)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(9)).fork;
-          _ <- (RateLimiter.delay *> outputs.offer(10)).fork;
+          _ <- ZIO.foreach(1 to 10)(n => (RateLimiter.delay *> outputs.offer(n)).fork);
           _ <- adjust(10000 millis);
           contents <- outputs.takeAll
         ) yield assert(contents)(hasSize(equalTo(11)))).provideSomeMagicLayer(testLayer)

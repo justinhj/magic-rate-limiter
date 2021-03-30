@@ -83,11 +83,9 @@ object Client {
         } else if (response.code == StatusCode.Ok) {
           response.body match {
             case Right(data) =>
-              // putStrLn(
-              //   s"got updated $uri. last modified ${response.header(HeaderNames.LastModified)} at ${System.currentTimeMillis()}"
-              // )
-              // *>
-              ZIO.succeed(data)
+              putStrLn(
+                s"got updated $uri. last modified ${response.header(HeaderNames.LastModified)} at ${System.currentTimeMillis()}"
+              ) *> ZIO.succeed(data)
             case Left(err) =>
               putStrLn(s"Request failed: $err") *>
               ZIO.fail(new Exception(err))

@@ -63,29 +63,11 @@ scalacOptions ++= Seq(
 
 javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation")
 
-val CatsVersion = "2.2.0"
-val CatsEffectVersion = "2.3.1"
-val MonixVersion = "3.3.0"
 val ZIOVersion = "1.0.4-2"
-val ShapelessVersion = "2.3.3"
-val FS2Version = "2.5.0"
 val AmmoniteVersion = "2.3.8"
 val SttpVersion = "3.1.7"
 
 libraryDependencies ++= Seq(
-  "com.typesafe" % "config" % "1.3.1",
-  // -- testing --
-  "org.scalactic" %% "scalactic" % "3.2.0",
-  "org.scalatest" %% "scalatest" % "3.2.0" % "test",
-  // Cats
-  "org.typelevel" %% "cats-core" % CatsVersion,
-  "org.typelevel" %% "cats-effect" % CatsEffectVersion,
-  // fs2
-  "co.fs2" %% "fs2-core" % FS2Version,
-  // Monix
-  "io.monix" %% "monix" % MonixVersion,
-  // Shapeless
-  "com.chuusai" %% "shapeless" % ShapelessVersion,
   // Zio
   "dev.zio" %% "zio" % ZIOVersion,
   "dev.zio" %% "zio-test" % ZIOVersion % "test",
@@ -93,13 +75,13 @@ libraryDependencies ++= Seq(
   "dev.zio" %% "zio-streams" % ZIOVersion,
   // Zio Magic
   "io.github.kitlangton" %% "zio-magic" % "0.1.12",
-  // type class derivation
-  "org.typelevel" %% "simulacrum" % "1.0.0",
   // sttp and json
   "com.softwaremill.sttp.client3" %% "core" % SttpVersion,
   "com.softwaremill.sttp.client3" %% "httpclient-backend-zio" % SttpVersion,
   "dev.zio" %% "zio-json" % "0.1.2",
   "io.github.kitlangton" %% "zio-magic" % "0.1.12",
+  // For nice dates
+  "org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final",
   // Embed Li Haoyi's Ammonite repl in your test project because it's cool
   "com.lihaoyi" %% "ammonite" % AmmoniteVersion % "test" cross CrossVersion.full
 )

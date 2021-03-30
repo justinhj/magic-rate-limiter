@@ -17,10 +17,10 @@ object SearchTopItems2 extends App {
     val searchLower = search.toLowerCase
     for (
       item <- Client.getItem(id);
-      _ <- if(item.by.toLowerCase.contains(searchLower)) putStrLn(s"Found in author: ${item.by}")
-           else if(item.text.toLowerCase.contains(searchLower)) putStrLn(s"Found in text: ${item.text}")
-           else if(item.title.toLowerCase.contains(searchLower)) putStrLn(s"Found in title: ${item.title}")
-           else if(item.url.toLowerCase.contains(searchLower)) putStrLn(s"Found in url: ${item.url}")
+      _ <- if(item.by.toLowerCase.contains(searchLower)) putStrLn(s"Found in author.\n${Util.show(item)}")
+           else if(item.text.toLowerCase.contains(searchLower)) putStrLn(s"Found in text.\n${Util.show(item)}")
+           else if(item.title.toLowerCase.contains(searchLower)) putStrLn(s"Found in title.\n${Util.show(item)}")
+           else if(item.url.toLowerCase.contains(searchLower)) putStrLn(s"Found in url.\n${Util.show(item)}")
            else ZIO.succeed(())
     ) yield ()
   }
