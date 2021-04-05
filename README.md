@@ -8,8 +8,14 @@ Let's you search Hacker News front page
 * Uses Sttp for the requests
 * zio-json for parsing responses
 * zio-magic for ZLayer management
-* Custom rate limiter limited as a ZLayer
-* WIP make the Client a ZLayer
+* zio-test to test using mocks and time sensitive code with TestClock
+* Custom rate limiter limited as a ZLayer and using a Ref
+* Or use ZQueue limiter from Wix implemented as ZLayer
+
+Learn more in my video
+
+https://youtu.be/3P2Gi--dG9A
+
 
 ## Building and running
 
